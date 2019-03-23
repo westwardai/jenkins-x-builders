@@ -1,0 +1,30 @@
+apiVersion: skaffold/v1beta2
+kind: Config
+build:
+  artifacts:
+  - image: changeme
+    context: .
+    docker: {}
+  tagPolicy:
+    envTemplate:
+      template: '{{.DOCKER_REGISTRY}}/westwardai/jenkins-x-builders:{{.VERSION}}'
+  local: {}
+deploy:
+  kubectl: {}
+profiles:
+- name: dev
+  build:
+    artifacts:
+    - docker: {}
+    tagPolicy:
+      envTemplate:
+        template: '{{.DOCKER_REGISTRY}}/westwardai/jenkins-x-builders:{{.DIGEST_HEX}}'
+    local: {}
+  deploy:
+    helm:
+      releases:
+      - name: jenkins-x-builders
+        chartPath: charts/jenkins-x-builders
+        setValueTemplates:
+          image.repository: '{{.DOCKER_REGISTRY}}/westwardai/jenkins-x-builders'
+          image.tag: '{{.DIGEST_HEX}}'
